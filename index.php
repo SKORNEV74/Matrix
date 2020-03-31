@@ -8,73 +8,119 @@
     <title>Document</title>
 </head>
 <body>
+<form method="post">
+    <input type="text" name="text">
+    <button type="submit">Send</button>
+</form>
 <?php
-    $connection = mysqli_connect('localhost', 'root', '','matrix');
+    if (isset($_POST['text'])) {
+        $text = (string)$_POST['text'];
+//        $stringArray = array();
+//        $result = "";
+        $counter = 0;
 
-    $stringArray = array();
+        $connection = mysqli_connect("localhost", "root", "","matrix");
 
-    $query = "SELECT string FROM strings";
-    $answer = mysqli_query($connection, $query);
-    if ($answer) {
-        while($rows = mysqli_fetch_array($answer)) {
-            $stringArray[] = array_values($rows);
+        if (mysqli_error($connection)) {
+            die("Error: (" . mysqli_errno($connection) . ") " . mysqli_error($connection));
         }
-    }
 
-    $firstArray = array("Пожалуйста,", "Просто", "Если сможете");
-    $secondArray = array("удивительное", "крутое", "простое", "важное", "бесполезное");
-    $thirdArray = array("изменялось ", "менялось каждый раз");
-    $fourthArray = array("быстро", "мгновенно", "оперативно", "правильно");
+        $answer = mysqli_query($connection, "SELECT string FROM strings");
+        if ($answer) {
+            while($rows = mysqli_fetch_array($answer)) {
+                $var = $rows['string'];
+//                $counter++;
+                if ($text == $var) {
+                    echo $rows['string'];
+                    $counter++;
+                }
 
-    $result = "";
-
-    for ($i = 0; $i < count($firstArray); $i++) {
-        $result .= $firstArray[$i] . " сделайте так, чтобы это ";
-
-        for ($j = 0; $j < count($secondArray); $j++) {
-            $result .= $secondArray[$j] . " тестовое предложение ";
-
-            for ($k = 0; $k < count($thirdArray); $k++) {
-                if ($thirdArray[$k] == "изменялось ") {
-
-                    for ($l = 0; $l < count($fourthArray); $l++) {
-                        $result .= $thirdArray[$k] . $fourthArray[$l] . " случайным образом.<br>";
-
-                        for ($m = 0; $m < count($stringArray); $m++) {
-
-                            if ($result != $stringArray[$m]) {
-                                echo $result;
-                                $insert = mysqli_query($connection, "INSERT INTO 'strings' ('string') VALUES ('$result')");
-                                break 5;
-                            }
-                            else {
-                                break;
-                            }
-                        }
-                        $result = $firstArray[$i] . " сделайте так, чтобы это " . $secondArray[$j] . " тестовое предложение ";
-                    }
-                } else {
-                    $result .= $thirdArray[$k] . ".<br>";
-
-                    for ($m = 0; $m < count($stringArray); $m++) {
-
-                        if ($result != $stringArray[$m]) {
-                            echo $result;
-                            $insert = mysqli_query($connection, "INSERT INTO 'strings' ('string') VALUES ('$result')");
-                            break 4;
-                        }
-                        else {
-                            break;
-                        }
-                    }
+                if ($counter == 0) {
+                    $result = mysqli_query($connection, "INSERT INTO strings (string) VALUES ('$text')");
                 }
             }
-            $result = $firstArray[$i] . " сделайте так, чтобы это ";
         }
-        $result = "";
-    }
 
-    mysqli_close($connection);
+//        for ($i = 0; $i < count($stringArray); $i++) {
+//            echo " {$stringArray[$i]} ";
+//            if ($text != $stringArray[$i]) {
+//
+//            }
+//        }
+
+//        $result = mysqli_query($connection, "INSERT INTO strings (string) VALUES ('$text')");
+
+        if ($result == true) {
+            echo "Информация занесена в базу данных";
+        } else {
+            echo "Информация не занесена в базу данных";
+        }
+
+//        $stringArray = array();
+//
+//        $query = "SELECT string FROM strings";
+//        $answer = mysqli_query($connection, $query);
+//        if ($answer) {
+//            while($rows = mysqli_fetch_array($answer)) {
+//                $stringArray[] = array_values($rows);
+//            }
+//        }
+//
+//        $firstArray = array("Пожалуйста,", "Просто", "Если сможете");
+//        $secondArray = array("удивительное", "крутое", "простое", "важное", "бесполезное");
+//        $thirdArray = array("изменялось ", "менялось каждый раз");
+//        $fourthArray = array("быстро", "мгновенно", "оперативно", "правильно");
+//
+//        $result = "";
+//
+//        for ($i = 0; $i < count($firstArray); $i++) {
+//            $result .= $firstArray[$i] . " сделайте так, чтобы это ";
+//
+//            for ($j = 0; $j < count($secondArray); $j++) {
+//                $result .= $secondArray[$j] . " тестовое предложение ";
+//
+//                for ($k = 0; $k < count($thirdArray); $k++) {
+//                    if ($thirdArray[$k] == "изменялось ") {
+//
+//                        for ($l = 0; $l < count($fourthArray); $l++) {
+//                            $result .= $thirdArray[$k] . $fourthArray[$l] . " случайным образом.<br>";
+//
+//                            for ($m = 0; $m < count($stringArray); $m++) {
+//
+//                                if ($result != $stringArray[$m]) {
+//                                    echo $result;
+//                                    $insert = mysqli_query($connection, "INSERT INTO 'strings' ('string') VALUES ('$result')");
+//                                    break 5;
+//                                }
+//                                else {
+//                                    break;
+//                                }
+//                            }
+//                            $result = $firstArray[$i] . " сделайте так, чтобы это " . $secondArray[$j] . " тестовое предложение ";
+//                        }
+//                    } else {
+//                        $result .= $thirdArray[$k] . ".<br>";
+//
+//                        for ($m = 0; $m < count($stringArray); $m++) {
+//
+//                            if ($result != $stringArray[$m]) {
+//                                echo $result;
+//                                $insert = mysqli_query($connection, "INSERT INTO 'strings' ('string') VALUES ('$result')");
+//                                break 4;
+//                            }
+//                            else {
+//                                break;
+//                            }
+//                        }
+//                    }
+//                }
+//                $result = $firstArray[$i] . " сделайте так, чтобы это ";
+//            }
+//            $result = "";
+//        }
+//
+//        mysqli_close($connection);
+    }
 ?>
 </body>
 </html>
