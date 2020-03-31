@@ -15,40 +15,20 @@
 <?php
     if (isset($_POST['text'])) {
         $text = (string)$_POST['text'];
-//        $stringArray = array();
-//        $result = "";
         $counter = 0;
 
         $connection = mysqli_connect("localhost", "root", "","matrix");
 
-        if (mysqli_error($connection)) {
-            die("Error: (" . mysqli_errno($connection) . ") " . mysqli_error($connection));
-        }
+        if (mysqli_error($connection)) die("Error: (" . mysqli_errno($connection) . ") " . mysqli_error($connection));
 
         $answer = mysqli_query($connection, "SELECT string FROM strings");
         if ($answer) {
             while($rows = mysqli_fetch_array($answer)) {
-                $var = $rows['string'];
-//                $counter++;
-                if ($text == $var) {
-                    echo $rows['string'];
-                    $counter++;
-                }
-
-                if ($counter == 0) {
-                    $result = mysqli_query($connection, "INSERT INTO strings (string) VALUES ('$text')");
-                }
+                if ($text ==$rows['string']) $counter++;
             }
         }
 
-//        for ($i = 0; $i < count($stringArray); $i++) {
-//            echo " {$stringArray[$i]} ";
-//            if ($text != $stringArray[$i]) {
-//
-//            }
-//        }
-
-//        $result = mysqli_query($connection, "INSERT INTO strings (string) VALUES ('$text')");
+        if ($counter == 0) $result = mysqli_query($connection, "INSERT INTO strings (string) VALUES ('$text')");
 
         if ($result == true) {
             echo "Информация занесена в базу данных";
@@ -56,16 +36,6 @@
             echo "Информация не занесена в базу данных";
         }
 
-//        $stringArray = array();
-//
-//        $query = "SELECT string FROM strings";
-//        $answer = mysqli_query($connection, $query);
-//        if ($answer) {
-//            while($rows = mysqli_fetch_array($answer)) {
-//                $stringArray[] = array_values($rows);
-//            }
-//        }
-//
 //        $firstArray = array("Пожалуйста,", "Просто", "Если сможете");
 //        $secondArray = array("удивительное", "крутое", "простое", "важное", "бесполезное");
 //        $thirdArray = array("изменялось ", "менялось каждый раз");
