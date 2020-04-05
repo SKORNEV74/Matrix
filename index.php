@@ -49,7 +49,7 @@
             }
         }
 
-        preg_match_all("#[\{]{1}(.[^\}]*)[\}]{1}#", $text, $stringArray);
+        preg_match_all("#[{](.[^}]*)[}]#", $text, $stringArray);
 
         $attachmentsArray = $stringArray;
 
