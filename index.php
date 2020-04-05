@@ -14,82 +14,75 @@
 </form>
 <?php
     if (isset($_POST['text'])) {
-        $text = (string)$_POST['text'];
-        $counter = 0;
 
-        $connection = mysqli_connect("localhost", "root", "","matrix");
+        //Строки для тестирования:
+        //{Al|La}la bl{bl|l b|lbl}lb. Cl{cl|lc}lc.
+        //{Пожалуйста,|Просто|Если сможете,} сделайте так, чтобы это {удивительное|крутое|простое|важное|бесполезное} тестовое предложение {изменялось случайным образом|менялось каждый раз}.
+        //{Пожалуйста,|Просто|Если сможете,} сделайте так, чтобы это {удивительное|крутое|простое|важное|бесполезное} тестовое предложение {изменялось {быстро|мгновенно|оперативно|правильно} случайным образом|менялось каждый раз}.
 
-        if (mysqli_error($connection)) die("Error: (" . mysqli_errno($connection) . ") " . mysqli_error($connection));
+        $text = (string)$_POST['text']; // Входящая строка
+        $replaceArray = array();
+        $resultString = "";
 
-        $answer = mysqli_query($connection, "SELECT string FROM strings");
-        if ($answer) {
-            while($rows = mysqli_fetch_array($answer)) {
-                if ($text ==$rows['string']) $counter++;
+        $connection = mysqli_connect("localhost", "root", "","matrix"); // Соединение с БД
+
+        if (mysqli_error($connection)) die("Error: (" . mysqli_errno($connection) . ") " . mysqli_error($connection)); // Проверка соединения
+
+        function chekingAndSending ($resultString) {
+            global $connection;
+            $answer = mysqli_query($connection, "SELECT string FROM strings"); // Ответ из БД для проверки на дублирование
+            $counter = 0; // счетчик
+            $result = "";
+
+            if ($answer) {
+                while($rows = mysqli_fetch_array($answer)) {
+                    if ($resultString == $rows['string']) $counter++;
+                }
+            }
+
+            if ($counter == 0) $result = mysqli_query($connection, "INSERT INTO strings (string) VALUES ('$resultString')"); // Отправка в БД
+
+            if ($result == true) { // Проверка внесения информации в БД
+                echo "OK <br>";
+            } else {
+                echo "Nope <br>";
             }
         }
 
-        if ($counter == 0) $result = mysqli_query($connection, "INSERT INTO strings (string) VALUES ('$text')");
+        preg_match_all("#[\{]{1}(.[^\}]*)[\}]{1}#", $text, $stringArray);
 
-        if ($result == true) {
-            echo "Информация занесена в базу данных";
-        } else {
-            echo "Информация не занесена в базу данных";
+        $attachmentsArray = $stringArray;
+
+        function replacement ($count, $attachmentsArray, $replaceArray, $resultString, $text) {
+
+            $subpatternsArray = array();
+
+            $tok = strtok($attachmentsArray[1][$count - 1], "|");
+
+            while ($tok !== false) {
+                $subpatternsArray[] = $tok;
+                $tok = strtok("|");
+            }
+
+            foreach ($subpatternsArray as $value) {
+                $replaceArray[$count - 1] = $value;
+
+                if ($count > 1) {
+                    replacement($count - 1, $attachmentsArray, $replaceArray, $resultString, $text);
+                }
+
+                if (count($replaceArray) == count($attachmentsArray[1])) {
+                    $replaceArray = array_reverse($replaceArray);
+                    $resultString = str_replace($attachmentsArray[0], $replaceArray, $text);
+                    chekingAndSending($resultString);
+                    $replaceArray = array_reverse($replaceArray, true);
+                }
+            }
         }
 
-//        $firstArray = array("Пожалуйста,", "Просто", "Если сможете");
-//        $secondArray = array("удивительное", "крутое", "простое", "важное", "бесполезное");
-//        $thirdArray = array("изменялось ", "менялось каждый раз");
-//        $fourthArray = array("быстро", "мгновенно", "оперативно", "правильно");
-//
-//        $result = "";
-//
-//        for ($i = 0; $i < count($firstArray); $i++) {
-//            $result .= $firstArray[$i] . " сделайте так, чтобы это ";
-//
-//            for ($j = 0; $j < count($secondArray); $j++) {
-//                $result .= $secondArray[$j] . " тестовое предложение ";
-//
-//                for ($k = 0; $k < count($thirdArray); $k++) {
-//                    if ($thirdArray[$k] == "изменялось ") {
-//
-//                        for ($l = 0; $l < count($fourthArray); $l++) {
-//                            $result .= $thirdArray[$k] . $fourthArray[$l] . " случайным образом.<br>";
-//
-//                            for ($m = 0; $m < count($stringArray); $m++) {
-//
-//                                if ($result != $stringArray[$m]) {
-//                                    echo $result;
-//                                    $insert = mysqli_query($connection, "INSERT INTO 'strings' ('string') VALUES ('$result')");
-//                                    break 5;
-//                                }
-//                                else {
-//                                    break;
-//                                }
-//                            }
-//                            $result = $firstArray[$i] . " сделайте так, чтобы это " . $secondArray[$j] . " тестовое предложение ";
-//                        }
-//                    } else {
-//                        $result .= $thirdArray[$k] . ".<br>";
-//
-//                        for ($m = 0; $m < count($stringArray); $m++) {
-//
-//                            if ($result != $stringArray[$m]) {
-//                                echo $result;
-//                                $insert = mysqli_query($connection, "INSERT INTO 'strings' ('string') VALUES ('$result')");
-//                                break 4;
-//                            }
-//                            else {
-//                                break;
-//                            }
-//                        }
-//                    }
-//                }
-//                $result = $firstArray[$i] . " сделайте так, чтобы это ";
-//            }
-//            $result = "";
-//        }
-//
-//        mysqli_close($connection);
+        replacement(count($attachmentsArray[1]), $attachmentsArray, $replaceArray, $resultString, $text);
+
+        mysqli_close($connection);
     }
 ?>
 </body>
